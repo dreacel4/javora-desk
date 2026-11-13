@@ -1,0 +1,18 @@
+{
+  "name": "javora-desk-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests for JAVORA DESK against a disposable local Supabase-compatible stack.",
+  "scripts": {
+    "stack:up": "bash local-stack/stack.sh up",
+    "stack:reset": "bash local-stack/stack.sh reset",
+    "stack:down": "bash local-stack/stack.sh down",
+    "flow": "node flow.mjs",
+    "sweep": "node sweep.mjs"
+  },
+  "dependencies": {
+    "mailparser": "^3.7.0",
+    "playwright-core": "^1.50.0",
+    "smtp-server": "^3.13.0"
+  }
+}

@@ -1,0 +1,7 @@
+local-stack/.bin/
+local-stack/*.log
+local-stack/mail.jsonl
+local-stack/app.env
+local-stack/postgrest.conf
+shots/
+node_modules/
