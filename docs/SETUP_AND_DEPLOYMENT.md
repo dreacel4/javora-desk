@@ -25,6 +25,7 @@ The schema lives in `supabase/migrations/` and must be applied **in filename ord
 | `20261113000300_workflow_functions.sql` | State machine, invitations trigger, all write operations |
 | `20261113000400_storage_views_realtime.sql` | Private storage bucket + policies, time read-model, dashboard/metrics, realtime |
 | `20261113000500_member_tracking_rate_limits.sql` | Sign-in tracking, invitation rate limit |
+| `20261114000600_open_google_registration.sql` | Optional open sign-up with Google (joins as Editor) |
 
 **Option A — Supabase CLI (recommended)**
 
@@ -68,23 +69,29 @@ The default templates use a browser-only flow that a server-rendered app cannot 
 Supabase's built-in mailer only delivers to project team members and is heavily rate-limited, so invitations to
 editors will not arrive without custom SMTP.
 
-## 3b. Sign in with Google (recommended for the team)
+## 3b. Sign in with Google
 
-With Google sign-in, members don't need passwords and **no SMTP is required** for inviting them.
+Everyone can sign in with their own Google account — no passwords and **no SMTP needed**.
 
 1. **Google Cloud Console** (<https://console.cloud.google.com>): create a project → **APIs & Services → OAuth consent
    screen** (External, app name "JAVORA DESK", your support email; scopes: email, profile, openid) → **Publish app**.
    Then **Credentials → Create credentials → OAuth client ID → Web application**, and add the Authorized redirect URI
-   `https://<your-project-ref>.supabase.co/auth/v1/callback`. Copy the Client ID and Client secret.
-2. **Supabase → Authentication → Sign In / Providers → Google**: enable, paste Client ID and Client secret, save.
-3. **Supabase → Authentication → Sign In / Providers**: turn **Allow new users to sign up ON**. This is required for
-   a person's *first* Google sign-in. It does not open registration: the `on_auth_user_created` trigger rejects every
-   account whose email has no pending invitation.
-4. In the app, **Team → Invite member → "Google account (no email is sent)"** with the person's exact Google address.
-   They open the website and click **Continue with Google**. Invitations expire after 7 days (re-add them if needed).
+   shown in Supabase (`https://<your-project-ref>.supabase.co/auth/v1/callback`). Copy the Client ID and secret.
+2. **Supabase → Authentication → Sign In / Providers → Google**: enable, paste Client ID and secret, save.
+3. **Supabase → Authentication → Sign In / Providers**: turn **Allow new users to sign up ON** (needed for anyone's
+   first Google sign-in).
 
-An existing email/password account (e.g. the Owner) can also use "Continue with Google" with the same address —
-Supabase links both sign-in methods to one account.
+Who gets in is decided by the database (`on_auth_user_created` trigger), not by that Supabase switch:
+
+| Situation | Result |
+|---|---|
+| Email has a pending invitation (Google or password) | Joins with the invited role |
+| No invitation, signs in with **Google**, *Settings → Workspace → "Anyone with a Google account can join"* **on** (default) | Joins as **Editor**; owners get a notification |
+| Same, but that setting **off** | Rejected |
+| No invitation, email/password sign-up | Always rejected |
+
+New members never receive a privileged role automatically. Promote someone to Dispatcher (or disable them) in **Team**.
+An existing password account can also use "Continue with Google" with the same address — Supabase links them.
 
 ## 4. Optional: scheduled maintenance
 
@@ -142,7 +149,7 @@ without a valid, active account.
 
 ## Deployment checklist
 
-- [ ] All five migrations applied without errors (in order)
+- [ ] All six migrations applied without errors (in order)
 - [ ] `project-files` bucket exists and is **not public**
 - [ ] Auth: sign-ups **disabled** (or enabled only because Google sign-in is used — invite-only is still enforced by the database); Site URL and Redirect URLs set to the production domain
 - [ ] Invite and Reset-password email templates use the `token_hash` link

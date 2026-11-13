@@ -42,9 +42,14 @@ const NOTIFICATION_GROUPS: { title: string; roles: AppRole[]; items: { key: stri
       { key: "session_auto_paused", label: "Timer paused automatically" },
     ],
   },
+  {
+    title: "Team",
+    roles: ["owner"],
+    items: [{ key: "member_joined", label: "Someone joined with Google" }],
+  },
 ];
 
-const MANAGER_ONLY = new Set(["project_claimed", "confirmation_submitted", "storyboard_submitted", "work_submitted"]);
+const MANAGER_ONLY = new Set(["project_claimed", "confirmation_submitted", "storyboard_submitted", "work_submitted", "member_joined"]);
 const EDITOR_ONLY = new Set([
   "project_available", "project_assigned", "project_unassigned", "confirmation_approved", "confirmation_clarification",
   "storyboard_approved", "storyboard_changes_requested", "storyboard_comment", "revision_requested", "project_approved",
@@ -108,7 +113,7 @@ export function ProfileSettings({ profile }: { profile: Pick<Tables<"profiles">,
       <Card>
         <CardHeader title="Notification preferences" description="In-app notifications you want to receive. Everything is on by default." />
         <CardBody className="flex flex-col gap-6">
-          {NOTIFICATION_GROUPS.map((g) => {
+          {NOTIFICATION_GROUPS.filter((g) => g.roles.includes(profile.role)).map((g) => {
             const items = g.items.filter((i) => relevant(i.key));
             if (items.length === 0) return null;
             return (
@@ -148,6 +153,7 @@ export function WorkspaceSettingsForm({ settings }: { settings: Tables<"workspac
     deadline_warning_hours: String(settings.deadline_warning_hours),
     stale_session_minutes: String(settings.stale_session_minutes),
     max_active_projects_per_editor: String(settings.max_active_projects_per_editor),
+    open_registration: settings.open_registration,
   });
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
   const zones = useMemo(() => timeZones(), []);
@@ -169,6 +175,22 @@ export function WorkspaceSettingsForm({ settings }: { settings: Tables<"workspac
               </Select>
             )}
           </Field>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader title="Who can join" />
+        <CardBody>
+          <Toggle
+            label="Anyone with a Google account can join as Editor"
+            description={
+              v.open_registration
+                ? "On: anyone who signs in with Google gets an Editor account immediately and can see projects open for claiming. You are notified about every new member."
+                : "Off: only people you add in Team can sign in."
+            }
+            checked={v.open_registration}
+            onChange={(c) => set("open_registration", c)}
+          />
         </CardBody>
       </Card>
 

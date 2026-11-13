@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       </div>
       <LoginForm next={next} notice={notice} />
       <p className="mt-8 text-center text-xs text-ink-muted">
-        Accounts are created by invitation from the workspace owner.
+        New to the team? Use “Continue with Google” with your own Google account.
       </p>
     </>
   );

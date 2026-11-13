@@ -40,6 +40,7 @@ const workspaceSchema = z.object({
   deadline_warning_hours: z.coerce.number().int().min(1, "At least 1 hour.").max(168, "At most 168 hours."),
   stale_session_minutes: z.coerce.number().int().min(3, "At least 3 minutes.").max(120, "At most 120 minutes."),
   max_active_projects_per_editor: z.coerce.number().int().min(0).max(50),
+  open_registration: z.boolean(),
 });
 
 export async function updateWorkspaceAction(values: z.input<typeof workspaceSchema>): Promise<ActionResult> {

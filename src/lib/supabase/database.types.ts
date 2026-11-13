@@ -1253,6 +1253,7 @@ export type Database = {
           max_active_projects_per_editor: number;
           updated_at: string;
           updated_by: string | null;
+          open_registration: boolean;
         };
         Insert: {
           id?: number;
@@ -1270,6 +1271,7 @@ export type Database = {
           max_active_projects_per_editor?: number;
           updated_at?: string;
           updated_by?: string | null;
+          open_registration?: boolean;
         };
         Update: {
           id?: number;
@@ -1287,6 +1289,7 @@ export type Database = {
           max_active_projects_per_editor?: number;
           updated_at?: string;
           updated_by?: string | null;
+          open_registration?: boolean;
         };
         Relationships: [
           {

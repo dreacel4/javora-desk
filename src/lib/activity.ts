@@ -50,7 +50,7 @@ export function describeActivity(action: string, raw: Json, people: Names): stri
     case "review.started": return "started reviewing the submission";
     case "submission.approved": return `approved delivery #${str(d.sequence)} — project completed`;
     case "submission.revision_requested": return `requested a revision on delivery #${str(d.sequence)} — “${str(d.reason)}”`;
-    case "member.joined": return `joined as ${human(str(d.role))}`;
+    case "member.joined": return `joined as ${human(str(d.role))}${d.via === "google" ? " (signed in with Google)" : ""}`;
     case "member.invited": return `invited ${str(d.email)} as ${human(str(d.role))}`;
     case "member.invitation_revoked": return `revoked the invitation for ${str(d.email)}`;
     case "member.role_changed": return `changed ${who(d.user_id)}'s role from ${str(d.from)} to ${str(d.to)}`;

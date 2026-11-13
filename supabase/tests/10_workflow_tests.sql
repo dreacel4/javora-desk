@@ -667,4 +667,34 @@ begin
 end $$;
 reset role;
 
+\echo '20. Open registration with Google'
+do $$ begin
+  -- uninvited email/password sign-up is still refused
+  perform tests.expect_error($q$insert into auth.users (email, raw_app_meta_data) values ('pw-stranger@example.com', '{"provider":"email"}')$q$, '%invitation only%');
+  -- uninvited Google sign-in joins as editor (never privileged)
+  insert into auth.users (email, raw_app_meta_data, raw_user_meta_data)
+  values ('New.Person@Gmail.com', '{"provider":"google","providers":["google"]}', '{"name":"New Person"}');
+  perform tests.assert((select role from public.profiles where email = 'new.person@gmail.com') = 'editor', 'google self-registration -> editor');
+  perform tests.assert((select full_name from public.profiles where email = 'new.person@gmail.com') = 'New Person', 'name taken from Google profile');
+  perform tests.assert(exists (select 1 from public.notifications n join public.profiles o on o.id = n.recipient_id
+                               where n.type = 'member_joined' and o.role = 'owner'), 'owner notified about new member');
+  -- invitations still decide the role for invited Google accounts
+  insert into public.invitations (email, role, invited_by) values ('disp2@gmail.com', 'dispatcher', '00000000-0000-0000-0000-0000000000a1');
+  insert into auth.users (email, raw_app_meta_data) values ('disp2@gmail.com', '{"provider":"google"}');
+  perform tests.assert((select role from public.profiles where email = 'disp2@gmail.com') = 'dispatcher', 'invited google account gets invited role');
+end $$;
+select tests.login(:disp_id);
+set role authenticated;
+do $$ begin
+  perform tests.expect_error($q$select public.update_workspace_settings('{"open_registration": false}')$q$, '%permission%');
+end $$;
+reset role;
+select tests.login(:owner_id);
+set role authenticated;
+select public.update_workspace_settings('{"open_registration": false}');
+reset role;
+do $$ begin
+  perform tests.expect_error($q$insert into auth.users (email, raw_app_meta_data) values ('late@gmail.com', '{"provider":"google"}')$q$, '%invitation only%');
+end $$;
+
 \echo 'ALL DATABASE TESTS PASSED'
