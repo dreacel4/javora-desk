@@ -15,6 +15,7 @@ const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
   role: roleSchema,
   full_name: z.string().trim().max(120).default(""),
+  method: z.enum(["google", "email"]).default("google"),
 });
 
 /**
@@ -35,6 +36,17 @@ export async function inviteMemberAction(values: z.input<typeof inviteSchema>): 
     p_full_name: parsed.data.full_name,
   });
   if (error) return fail(error);
+
+  // Google sign-in: the invitation record is all that is needed. When this
+  // person first signs in with Google using this exact address, the database
+  // creates their profile with the role chosen here. No email is sent.
+  if (parsed.data.method === "google") {
+    revalidatePath("/team");
+    return {
+      ok: true,
+      message: `${parsed.data.email} can now sign in with Google. Share the website link with them.`,
+    };
+  }
 
   let admin;
   try {

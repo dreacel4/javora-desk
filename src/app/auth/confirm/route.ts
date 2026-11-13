@@ -17,6 +17,14 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get("code");
   let next = safeNext(url.searchParams.get("next"), "/dashboard");
 
+  // Errors returned by an OAuth provider (e.g. an uninvited Google account is
+  // rejected by the database trigger and Supabase reports "Database error saving new user").
+  const oauthError = url.searchParams.get("error_description") ?? url.searchParams.get("error");
+  if (oauthError) {
+    const notInvited = /database error|signups not allowed|invitation/i.test(oauthError);
+    return NextResponse.redirect(new URL(`/login?notice=${notInvited ? "not-invited" : "oauth-failed"}`, request.url));
+  }
+
   const supabase = await createClient();
   let ok = false;
 

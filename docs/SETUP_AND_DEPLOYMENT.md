@@ -68,6 +68,24 @@ The default templates use a browser-only flow that a server-rendered app cannot 
 Supabase's built-in mailer only delivers to project team members and is heavily rate-limited, so invitations to
 editors will not arrive without custom SMTP.
 
+## 3b. Sign in with Google (recommended for the team)
+
+With Google sign-in, members don't need passwords and **no SMTP is required** for inviting them.
+
+1. **Google Cloud Console** (<https://console.cloud.google.com>): create a project → **APIs & Services → OAuth consent
+   screen** (External, app name "JAVORA DESK", your support email; scopes: email, profile, openid) → **Publish app**.
+   Then **Credentials → Create credentials → OAuth client ID → Web application**, and add the Authorized redirect URI
+   `https://<your-project-ref>.supabase.co/auth/v1/callback`. Copy the Client ID and Client secret.
+2. **Supabase → Authentication → Sign In / Providers → Google**: enable, paste Client ID and Client secret, save.
+3. **Supabase → Authentication → Sign In / Providers**: turn **Allow new users to sign up ON**. This is required for
+   a person's *first* Google sign-in. It does not open registration: the `on_auth_user_created` trigger rejects every
+   account whose email has no pending invitation.
+4. In the app, **Team → Invite member → "Google account (no email is sent)"** with the person's exact Google address.
+   They open the website and click **Continue with Google**. Invitations expire after 7 days (re-add them if needed).
+
+An existing email/password account (e.g. the Owner) can also use "Continue with Google" with the same address —
+Supabase links both sign-in methods to one account.
+
 ## 4. Optional: scheduled maintenance
 
 Enable **Database → Extensions → pg_cron**, then run `supabase/optional/pg_cron_maintenance.sql` in the SQL Editor.
@@ -126,7 +144,7 @@ without a valid, active account.
 
 - [ ] All five migrations applied without errors (in order)
 - [ ] `project-files` bucket exists and is **not public**
-- [ ] Auth: sign-ups **disabled**; Site URL and Redirect URLs set to the production domain
+- [ ] Auth: sign-ups **disabled** (or enabled only because Google sign-in is used — invite-only is still enforced by the database); Site URL and Redirect URLs set to the production domain
 - [ ] Invite and Reset-password email templates use the `token_hash` link
 - [ ] Custom SMTP configured and a test invitation received
 - [ ] `SUPABASE_SECRET_KEY` set in Vercel **without** `NEXT_PUBLIC_`; not present in the repository

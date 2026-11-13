@@ -73,7 +73,7 @@ export default async function TeamPage() {
 
         {isOwner && invitations && invitations.length > 0 && (
           <Card>
-            <CardHeader title="Pending invitations" description="Invitations that have not produced an account yet." />
+            <CardHeader title="Pending invitations" description="Added members who have not signed in yet. Google invitations become active the first time they use “Continue with Google”; they expire after 7 days." />
             <ul className="divide-y divide-line">
               {invitations.map((i) => (
                 <li key={i.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">

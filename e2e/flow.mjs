@@ -60,7 +60,8 @@ for (const [name, email, role] of [
   await owner.p.getByRole("button", { name: "Invite member" }).click();
   const d = owner.p.getByRole("dialog");
   await d.getByLabel("Full name").fill(name);
-  await d.getByLabel("Email").fill(email);
+  await d.getByLabel("How will they sign in?").selectOption("email");
+  await d.getByLabel(/^Email\*?$/).fill(email);
   await d.getByLabel("Role").selectOption(role);
   await d.getByRole("button", { name: "Send invitation" }).click();
   await toast(owner.p, `Invitation sent to ${email}`);

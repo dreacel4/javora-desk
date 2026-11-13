@@ -17,7 +17,7 @@ import { Dropdown, MenuItem } from "@/components/ui/nav";
 
 export function InviteButton() {
   const [open, setOpen] = useState(false);
-  const [v, setV] = useState({ email: "", role: "editor" as AppRole, full_name: "" });
+  const [v, setV] = useState({ email: "", role: "editor" as AppRole, full_name: "", method: "google" as "google" | "email" });
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>({});
   const { run, pending } = useAction();
   return (
@@ -29,7 +29,7 @@ export function InviteButton() {
         open={open}
         onClose={() => setOpen(false)}
         title="Invite a team member"
-        description="They receive an email to set their password. The role you choose is stored server-side and cannot be changed by the invitee."
+        description="The role you choose is stored on the server and cannot be changed by the invitee."
         footer={
           <>
             <Button variant="secondary" onClick={() => setOpen(false)} disabled={pending}>
@@ -43,11 +43,11 @@ export function InviteButton() {
                 const res = await run(() => inviteMemberAction(v));
                 if (res.ok) {
                   setOpen(false);
-                  setV({ email: "", role: "editor", full_name: "" });
+                  setV({ email: "", role: "editor", full_name: "", method: "google" });
                 } else setErrors(res.fieldErrors ?? {});
               }}
             >
-              Send invitation
+              {v.method === "google" ? "Add member" : "Send invitation"}
             </Button>
           </>
         }
@@ -56,7 +56,20 @@ export function InviteButton() {
           <Field label="Full name" error={errors.full_name}>
             {(p) => <Input {...p} value={v.full_name} onChange={(e) => setV((s) => ({ ...s, full_name: e.target.value }))} maxLength={120} />}
           </Field>
-          <Field label="Email" required error={errors.email}>
+          <Field label="How will they sign in?">
+            {(p) => (
+              <Select {...p} value={v.method} onChange={(e) => setV((s) => ({ ...s, method: e.target.value as "google" | "email" }))}>
+                <option value="google">Google account (no email is sent)</option>
+                <option value="email">Email invitation with password</option>
+              </Select>
+            )}
+          </Field>
+          <Field
+            label={v.method === "google" ? "Google account email" : "Email"}
+            required
+            error={errors.email}
+            hint={v.method === "google" ? "Must be the exact Gmail / Google Workspace address they will sign in with." : "They receive an email to set their password (requires SMTP in Supabase)."}
+          >
             {(p) => <Input {...p} type="email" value={v.email} onChange={(e) => setV((s) => ({ ...s, email: e.target.value }))} autoComplete="off" />}
           </Field>
           <Field label="Role" required hint="Dispatchers manage projects and reviews. Owners have full administrative access.">
